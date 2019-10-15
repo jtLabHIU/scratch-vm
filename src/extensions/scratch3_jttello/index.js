@@ -54,7 +54,7 @@ class Scratch3jttello {
                     arguments: {
                         TELLOID: {
                             type: ArgumentType.STRING,
-                            defaultValue: "D2D555"
+                            defaultValue: "D3F049"
                         }
                     }
                 },
@@ -90,9 +90,22 @@ class Scratch3jttello {
     }
 
     connect(args){
-        return this._client.request('connect ' + args.TELLOID, 'module')
+        const deviceInfo =
+            {
+                'name': args.TELLOID,
+                'ssid': 'TELLO-' + args.TELLOID,
+                'mac': args.TELLOID,
+                'ip': '192.168.10.1',
+                'port': {'udp':8889},
+                'via': {'udp':8889},
+                'downstream': [{'udp':8890}, {'udp':11111}]
+            };
+            this.log(`connect start`);
+        return this._client.request('addDevice ' + JSON.stringify(deviceInfo), 'module')
         .then( result => {
-            console.log('connect result:', result);
+            this._client.request('connect ' + args.TELLOID, 'module');
+        }).then( result => {
+            this.log('connect result:', result);
             return result.message;
         });
     }
