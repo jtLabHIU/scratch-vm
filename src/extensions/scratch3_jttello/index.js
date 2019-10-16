@@ -54,7 +54,7 @@ class Scratch3jttello {
                     arguments: {
                         TELLOID: {
                             type: ArgumentType.STRING,
-                            defaultValue: "D3F049"
+                            defaultValue: "D2D555"
                         }
                     }
                 },
@@ -62,6 +62,11 @@ class Scratch3jttello {
                     opcode: 'command',
                     text: 'コマンドモードにする',
                     blockType: BlockType.COMMAND,
+                },
+                {
+                    opcode: 'popResponse',
+                    text: 'レスポンスのみ取得する',
+                    blockType: BlockType.REPORTER
                 },
                 {
                     opcode: 'battery',
@@ -82,6 +87,104 @@ class Scratch3jttello {
                     opcode: 'land',
                     blockType: BlockType.COMMAND,
                     text: '着陸する'
+                },
+                {
+                    opcode: 'streamon',
+                    blockType: BlockType.COMMAND,
+                    text: 'ストリームをオンにする'
+                },
+                {
+                    opcode: 'streamoff',
+                    blockType: BlockType.COMMAND,
+                    text: 'ストリームをオフにする'
+                },
+                {
+                    opcode: 'up',
+                    text: '[CM] cm 上昇する',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        CM: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        }
+                    }
+                },
+                {
+                    opcode: 'down',
+                    text: '[CM] cm 下降する',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        CM: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        }
+                    }
+                },
+                {
+                    opcode: 'forward',
+                    text: '[CM] cm 前へ飛ぶ',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        CM: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        }
+                    }
+                },
+                {
+                    opcode: 'back',
+                    text: '[CM] cm 後ろへ飛ぶ',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        CM: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        }
+                    }
+                },
+                {
+                    opcode: 'left',
+                    text: '[CM] cm 左へ飛ぶ',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        CM: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        }
+                    }
+                },
+                {
+                    opcode: 'right',
+                    text: '[CM] cm 右へ飛ぶ',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        CM: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        }
+                    }
+                },
+                {
+                    opcode: 'cw',
+                    text: '[DEGREE] ° 時計周りに旋回する',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        DEGREE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 90
+                        }
+                    }
+                },
+                {
+                    opcode: 'ccw',
+                    text: '[DEGREE] ° 反時計周りに旋回する',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        DEGREE: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 90
+                        }
+                    }
                 }
             ],
             menus: {
@@ -116,6 +219,13 @@ class Scratch3jttello {
             return result.message;
         });
     }
+    poResponse(){
+        return this._client.request('popResponse')
+        .then( result => {
+            console.log('popResponse result:', result);
+            return result.message;
+        });
+    }
     battery(){
         return this._client.request('battery?')
         .then( result => {
@@ -142,6 +252,70 @@ class Scratch3jttello {
         return this._client.request('land')
         .then( result => {
             console.log('land result:', result);
+            return result.message;
+        });
+    }
+
+    up(args){
+        return this._client.request('up ' + args.CM)
+        .then( result => {
+            console.log('up result:', result);
+            return result.message;
+        });
+    }
+
+    down(args){
+        return this._client.request('down ' + args.CM)
+        .then( result => {
+            console.log('down result:', result);
+            return result.message;
+        });
+    }
+
+    forward(args){
+        return this._client.request('forward ' + args.CM)
+        .then( result => {
+            console.log('forward result:', result);
+            return result.message;
+        });
+    }
+
+    back(args){
+        return this._client.request('back ' + args.CM)
+        .then( result => {
+            console.log('back result:', result);
+            return result.message;
+        });
+    }
+
+    left(args){
+        return this._client.request('left ' + args.CM)
+        .then( result => {
+            console.log('left result:', result);
+            return result.message;
+        });
+    }
+
+    right(args){
+        return this._client.request('right ' + args.CM)
+        .then( result => {
+            console.log('right result:', result);
+            return result.message;
+        });
+    }
+
+    cw(args){
+        return this._client.request('cw ' + args.DEGREE)
+        .then( result => {
+            console.log('cw result:', result);
+            return result.message;
+        });
+    }
+
+    ccw(args){
+        return this._client.request('ccw ' + args.DEGREE)
+        .then( result => {
+            console.log('ccw result:', result);
             return result.message;
         });
     }
