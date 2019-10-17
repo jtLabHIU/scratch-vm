@@ -219,7 +219,7 @@ class Scratch3jttello {
             return result.message;
         });
     }
-    poResponse(){
+    popResponse(){
         return this._client.request('popResponse')
         .then( result => {
             console.log('popResponse result:', result);
