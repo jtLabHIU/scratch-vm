@@ -1,4 +1,5 @@
 const Cast = require('../util/cast');
+const log = require('../util/log').log;
 
 class Scratch3EventBlocks {
     constructor (runtime) {
@@ -79,6 +80,9 @@ class Scratch3EventBlocks {
     }
 
     broadcast (args, util) {
+        log('broadcast invoked:');
+        log('message:', args.BROADCAST_OPTION.name);
+        log('util:', util);
         const broadcastVar = util.runtime.getTargetForStage().lookupBroadcastMsg(
             args.BROADCAST_OPTION.id, args.BROADCAST_OPTION.name);
         if (broadcastVar) {
@@ -87,9 +91,13 @@ class Scratch3EventBlocks {
                 BROADCAST_OPTION: broadcastOption
             });
         }
+        const EventEmitter = require('events');
+        new EventEmitter().emit('VM_CALL');
     }
 
     broadcastAndWait (args, util) {
+        log('broadcastAndWait invoked:');
+        log('message:', args.BROADCAST_OPTION.name);
         const broadcastVar = util.runtime.getTargetForStage().lookupBroadcastMsg(
             args.BROADCAST_OPTION.id, args.BROADCAST_OPTION.name);
         if (broadcastVar) {
