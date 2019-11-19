@@ -166,6 +166,10 @@ class VirtualMachine extends EventEmitter {
         this.flyoutBlockListener = this.flyoutBlockListener.bind(this);
         this.monitorBlockListener = this.monitorBlockListener.bind(this);
         this.variableListener = this.variableListener.bind(this);
+
+        this.on('VM_CALL', () => {
+            console.log('VM_CALL received.');
+        });
     }
 
     /**
