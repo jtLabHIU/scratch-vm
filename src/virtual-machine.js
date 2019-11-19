@@ -46,6 +46,9 @@ const CORE_EXTENSIONS = [
 class VirtualMachine extends EventEmitter {
     constructor () {
         super();
+        centralDispatch.setService('vm', this).catch(e => {
+            log.error(`Failed to register vm service: ${JSON.stringify(e)}`);
+        });
 
         /**
          * VM runtime, to store blocks, I/O devices, sprites/targets, etc.

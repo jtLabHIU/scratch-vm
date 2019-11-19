@@ -82,6 +82,7 @@ class Scratch3EventBlocks {
         const broadcastVar = util.runtime.getTargetForStage().lookupBroadcastMsg(
             args.BROADCAST_OPTION.id, args.BROADCAST_OPTION.name);
         if (broadcastVar) {
+            this.runtime.ioDevices.helper.onBroadcast(broadcastVar);
             const broadcastOption = broadcastVar.name;
             util.startHats('event_whenbroadcastreceived', {
                 BROADCAST_OPTION: broadcastOption
@@ -90,9 +91,12 @@ class Scratch3EventBlocks {
     }
 
     broadcastAndWait (args, util) {
+        log('broadcastAndWait invoked:');
+        log('message:', args.BROADCAST_OPTION.name);
         const broadcastVar = util.runtime.getTargetForStage().lookupBroadcastMsg(
             args.BROADCAST_OPTION.id, args.BROADCAST_OPTION.name);
         if (broadcastVar) {
+            this.runtime.ioDevices.helper.onBroadcast(broadcastVar);
             const broadcastOption = broadcastVar.name;
             // Have we run before, starting threads?
             if (!util.stackFrame.startedThreads) {

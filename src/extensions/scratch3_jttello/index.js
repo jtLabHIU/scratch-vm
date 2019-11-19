@@ -3,6 +3,7 @@ const BlockType = require('../../extension-support/block-type');
 const Cast = require('../../util/cast');
 const log = require('../../util/log');
 //const ws = require('ws');
+const dispatch = require('../../dispatch/central-dispatch');
 const WSC = require('./lib/jtWebSockClientPromise');
 
 /**
@@ -34,6 +35,7 @@ class Scratch3jttello {
         //this.runtime.on('targetWasCreated', this._onTargetCreated);
         this._client = new WSC({portComm:5963, apiComm:'jtS3H'});
         this._client.init();
+        console.log('dispatch from extention:', dispatch.services);
     }
 
 

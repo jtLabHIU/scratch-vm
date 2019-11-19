@@ -5,6 +5,7 @@
 
 const uid = require('../util/uid');
 const xmlEscape = require('../util/xml-escape');
+const dispatch = require('../dispatch/central-dispatch');
 
 class Variable {
     /**
@@ -21,13 +22,13 @@ class Variable {
         this.isCloud = isCloud;
         switch (this.type) {
         case Variable.SCALAR_TYPE:
-            this.value = 0;
+            this._value = 0;
             break;
         case Variable.LIST_TYPE:
-            this.value = [];
+            this._value = [];
             break;
         case Variable.BROADCAST_MESSAGE_TYPE:
-            this.value = this.name;
+            this._value = this.name;
             break;
         default:
             throw new Error(`Invalid variable type: ${this.type}`);
@@ -38,6 +39,15 @@ class Variable {
         isLocal = (isLocal === true);
         return `<variable type="${this.type}" id="${this.id}" islocal="${isLocal
         }" iscloud="${this.isCloud}">${xmlEscape(this.name)}</variable>`;
+    }
+
+    set value(param){
+        this._value = param;
+        dispatch.services.runtime.ioDevices.helper.onChangeVariable(this);
+    }
+
+    get value(){
+        return this._value;
     }
 
     /**
