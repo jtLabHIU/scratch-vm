@@ -22,6 +22,12 @@ class Helper extends JSONRPC{
         this._comm.port = 8888;
         this._comm.endpoint = 'api';
         this._comm.sock = null;
+        this._comm.id = 0;
+
+        this._watchdogTerminater = false;
+        this._responseBuffer = [];
+
+        this.open({port:5963, endpoint:'jtS3H'});
     }
 
     /**
@@ -46,43 +52,134 @@ class Helper extends JSONRPC{
         }
         
         try{
+            log.log(`helper attempt to connect ws://${this._comm.host}:${this._comm.port}/${this._comm.endpoint}`);
             this._comm.sock = new WebSocket(`ws://${this._comm.host}:${this._comm.port}/${this._comm.endpoint}`);
-            this._comm.sock.onopen = _onOpen;
-            this._comm.sock.onclose = _onClose;
-            this._comm.sock.onerror = _onError;
-            this._comm.sock.onmessage = _onMessage;
+            this._comm.sock.addEventListener('open', () => { this._onOpen() });
+            this._comm.sock.addEventListener('close', () => { this._onClose() });
+            this._comm.sock.addEventListener('error', (e) => { this._onError(e) });
+            this._comm.sock.addEventListener('message', (sock) => { this._onMessage(sock) });
         } catch(exception) {
-            log.error('unable to open WebSocket for helper.');
+            log.error('unable to open WebSocket for helper.', exception);
             this.close();
         }
     }
 
-    _onOpen(event){
-        log.log('success to open the WebSocket for helper:', this._sock.url);
-        log.log(event);
+    _onOpen(){
+        log.log('success to open the WebSocket for helper:', this._comm.sock.url);
     }
 
-    _onClose(event){
-        log.log('success to open the WebSocket for helper:', this._sock.url);
-        log.log(event);
+    _onClose(sock){
+        log.log('success to open the WebSocket for helper:', this._comm.sock.url);
     }
 
-    _onError(event){
-        log.log('an error is observed in the WebSocket for helper:', this._sock.url);
-        log.log(event);
+    _onError(e){
+        log.log('an error is observed in the WebSocket for helper:', this._comm.sock.url);
+        log.log(e);
     }
 
-    _onMessage(event){
-        log.log('an message is received from the WebSocket for helper:', this._sock.url);
-        log.log(event);
+    _onMessage(sock){
+        log.log('an message is received from the WebSocket for helper:', this._comm.sock.url);
+        const response = JSON.parse(sock.data);
+        log.log(response);
+        if(response.commID === -1 && response.message === 'broadcast'){
+            log.log('broadcast invoked: ', response.key);
+            const broadcastVar = dispatch.services.runtime.getTargetForStage().lookupBroadcastMsg(
+                null, response.key);
+            if (broadcastVar) {
+                log.log('broadcast lookup successed');
+                const broadcastOption = response.key;
+                dispatch.services.runtime.startHats('event_whenbroadcastreceived', {
+                    BROADCAST_OPTION: broadcastOption
+                });
+            }else{
+                log.log('broadcast not found');
+            }
+        }else{
+            log.log('mesh: ', response.message);
+            this._responseBuffer.push(response);
+        }
+    }
+
+    get responseBuffer(){
+        return this._responseBuffer;
+    }
+
+    getResponse(commID){
+        let result = null;
+        let idx = 0;
+        let len = this._responseBuffer.length;
+        if(len){
+            result = [];
+            while(idx < len){
+                if(this._responseBuffer[idx].commID === commID){
+                    result.push(this._responseBuffer[idx]);
+                    this._responseBuffer.splice(idx,1);
+                    len--;
+                }else{
+                    idx++;
+                }
+            }
+        }
+        return result;
+    }
+
+    clearResponseBuffer(){
+        this._responseBuffer = [];
+        return;
+    }
+
+    request(message = 'command', type = 'sync', timeout = 10000){
+        return new Promise( resolve => {
+            let result = null;
+            let response = null;
+            let timer = timeout;
+            const interval = 5;
+            let watchdog = null;
+
+            const commID = (++this._comm.id);
+            const req =  commID + ':' + type + ':' + message;
+
+            const waitPromise = new Promise( resolve => {
+                log.log('helper request:', req);
+                this._comm.sock.send(req);
+                watchdog = setInterval( () => {
+                    response = this.getResponse(commID)
+                    if(response && response.length){
+                        response = response[0];
+
+                        if(response){
+                            resolve(response);
+                        }
+                        timer = timer - interval;
+                        if(timer<0){
+                            resolve(false);
+                        }
+                    }
+                }, interval);
+            }).then( (response) => {
+                clearInterval(watchdog);
+                if(response){
+                    log.log('helper response:',response);
+                } else {
+                    log.log('helper request: response is null');
+                }
+                resolve(response);
+            }).catch( e => {
+                log.log('helper request() send rejected:', e);
+            });
+        }).then( response => {
+            return response;
+        });
     }
 
     close(){
+        this._watchdogTerminater = true;
         try{
             this._comm.sock.close();
             this._comm.sock = null;
         }catch(e){}
     }
+
 
     /**
      * has been called from setter on Variable
@@ -92,7 +189,7 @@ class Helper extends JSONRPC{
         if(this.isOpen()){
             log.log('hi from helper.onChangeValiable:', variable);
         }else{
-            log.log('unable to connect:', this._comm.sock);
+            log.log('helper: onChangeVariable: unable to connect:', this._comm.sock.url);
         }
     }
 
@@ -101,10 +198,14 @@ class Helper extends JSONRPC{
      * @param {Variable} variable 
      */
     onBroadcast(variable){
+        log.log(dispatch.services.vm.runtime);
         if(this.isOpen()){
             log.log('hi from helper.onBroadcast:', variable);
+            //if(variable.split(' ')[0] === 'connect'){
+                this.request(variable, 'mesh');
+            //}
         }else{
-            log.log('unable to connect:', this._comm.sock);
+            log.log('helper: onBroadCast: unable to connect:', this._comm.sock.url);
         }
     }
 }
