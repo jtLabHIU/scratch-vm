@@ -2,6 +2,7 @@ const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
 const Cast = require('../../util/cast');
 const log = require('../../util/log');
+const formatMessage = require('format-message');
 //const ws = require('ws');
 const dispatch = require('../../dispatch/central-dispatch');
 const WSC = require('./lib/jtWebSockClientPromise');
@@ -57,6 +58,7 @@ class Scratch3jttello {
                         TELLOID: {
                             type: ArgumentType.STRING,
                             defaultValue: "D2D555"
+//                            defaultValue: "D3F077"
                         }
                     }
                 },
@@ -64,11 +66,6 @@ class Scratch3jttello {
                     opcode: 'command',
                     text: 'コマンドモードにする',
                     blockType: BlockType.COMMAND,
-                },
-                {
-                    opcode: 'popResponse',
-                    text: 'レスポンスのみ取得する',
-                    blockType: BlockType.REPORTER
                 },
                 {
                     opcode: 'battery',
@@ -81,11 +78,6 @@ class Scratch3jttello {
                     text: '離陸する'
                 },
                 {
-                    opcode: 'flip',
-                    blockType: BlockType.COMMAND,
-                    text: '宙返りする'
-                },
-                {
                     opcode: 'land',
                     blockType: BlockType.COMMAND,
                     text: '着陸する'
@@ -93,12 +85,17 @@ class Scratch3jttello {
                 {
                     opcode: 'streamon',
                     blockType: BlockType.COMMAND,
-                    text: 'ストリームをオンにする'
+                    text: 'カメラ映像を表示する'
                 },
                 {
                     opcode: 'streamoff',
                     blockType: BlockType.COMMAND,
-                    text: 'ストリームをオフにする'
+                    text: 'カメラ映像を切る'
+                },
+                {
+                    opcode: 'emergency',
+                    blockType: BlockType.COMMAND,
+                    text: 'その場で緊急着陸する'
                 },
                 {
                     opcode: 'up',
@@ -107,7 +104,7 @@ class Scratch3jttello {
                     arguments: {
                         CM: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 20
+                            defaultValue: 50
                         }
                     }
                 },
@@ -118,7 +115,7 @@ class Scratch3jttello {
                     arguments: {
                         CM: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 20
+                            defaultValue: 50
                         }
                     }
                 },
@@ -129,7 +126,7 @@ class Scratch3jttello {
                     arguments: {
                         CM: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 20
+                            defaultValue: 50
                         }
                     }
                 },
@@ -140,7 +137,7 @@ class Scratch3jttello {
                     arguments: {
                         CM: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 20
+                            defaultValue: 50
                         }
                     }
                 },
@@ -151,7 +148,7 @@ class Scratch3jttello {
                     arguments: {
                         CM: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 20
+                            defaultValue: 50
                         }
                     }
                 },
@@ -162,13 +159,13 @@ class Scratch3jttello {
                     arguments: {
                         CM: {
                             type: ArgumentType.NUMBER,
-                            defaultValue: 20
+                            defaultValue: 50
                         }
                     }
                 },
                 {
                     opcode: 'cw',
-                    text: '[DEGREE] ° 時計周りに旋回する',
+                    text: '時計周りに [DEGREE] ° 旋回する',
                     blockType: BlockType.COMMAND,
                     arguments: {
                         DEGREE: {
@@ -179,7 +176,7 @@ class Scratch3jttello {
                 },
                 {
                     opcode: 'ccw',
-                    text: '[DEGREE] ° 反時計周りに旋回する',
+                    text: '反時計周りに [DEGREE] ° 旋回する',
                     blockType: BlockType.COMMAND,
                     arguments: {
                         DEGREE: {
@@ -187,9 +184,451 @@ class Scratch3jttello {
                             defaultValue: 90
                         }
                     }
+                },
+                {
+                    opcode: 'flip',
+                    blockType: BlockType.COMMAND,
+                    text: '[DIRECTION] に宙返りする',
+                    arguments: {
+                        DIRECTION: {
+                            type: ArgumentType.STRING,
+                            menu: 'FLIP_DIRECTIONS',
+                            defaultValue: 'f'
+                        }
+                    }
+                },
+                {
+                    opcode: 'go',
+                    blockType: BlockType.COMMAND,
+                    text: '( [X] , [Y] , [Z] )へ [SPEED] cm/秒で飛ぶ',
+                    arguments: {
+                        X: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50
+                        },
+                        Y: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50
+                        },
+                        Z: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50
+                        }
+                    }
+                },
+                {
+                    opcode: 'stop',
+                    blockType: BlockType.COMMAND,
+                    text: 'その場でホバリングする'
+                },
+                {
+                    opcode: 'curve',
+                    blockType: BlockType.COMMAND,
+                    text: '( [X1] , [Y1] , [Z1] )を通って、( [X2] , [Y2] , [Z2] )へ [SPEED] cm/秒でカーブしながら飛ぶ',
+                    arguments: {
+                        X1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        },
+                        Y1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        },
+                        Z1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        X2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 60
+                        },
+                        Y2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 40
+                        },
+                        Z2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 60
+                        }
+                    }
+                },
+                {
+                    opcode: 'gomid',
+                    blockType: BlockType.COMMAND,
+                    text: '( [X] , [Y] , [Z] )のミッションパッド [MID] まで [SPEED] cm/秒で飛ぶ',
+                    arguments: {
+                        X: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50
+                        },
+                        Y: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50
+                        },
+                        Z: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 80
+                        },
+                        MID: {
+                            type: ArgumentType.STRING,
+                            menu: 'MISSION_PAD_ID',
+                            defaultValue: 'm1'
+                        },
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50
+                        }
+                    }
+                },
+                {
+                    opcode: 'curvemid',
+                    blockType: BlockType.COMMAND,
+                    text: '( [X1] , [Y1] , [Z1] )を通って、( [X2] , [Y2] , [Z2] )のミッションパッド [MID] まで [SPEED] cm/秒でカーブしながら飛ぶ',
+                    arguments: {
+                        X1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        },
+                        Y1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 20
+                        },
+                        Z1: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 80
+                        },
+                        X2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 60
+                        },
+                        Y2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 40
+                        },
+                        Z2: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 80
+                        },
+                        MID: {
+                            type: ArgumentType.STRING,
+                            menu: 'MISSION_PAD_ID',
+                            defaultValue: 'm1'
+                        },
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 60
+                        }
+                    }
+                },
+                {
+                    opcode: 'jumpmid',
+                    blockType: BlockType.COMMAND,
+                    text: '( [X] , [Y] , [Z] )のミッションパッド [MID1] から [MID2] まで [SPEED] cm/秒で飛び、 [YAW] ° に向く',
+                    arguments: {
+                        X: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 100
+                        },
+                        Y: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        Z: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 80
+                        },
+                        MID1: {
+                            type: ArgumentType.STRING,
+                            menu: 'MISSION_PAD_ID',
+                            defaultValue: 'm1'
+                        },
+                        MID2: {
+                            type: ArgumentType.STRING,
+                            menu: 'MISSION_PAD_ID',
+                            defaultValue: 'm1'
+                        },
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 50
+                        },
+                        YAW: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    }
+                },
+                {
+                    opcode: 'speed',
+                    text: '速度を [SPEED] cm/秒にする',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        SPEED: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 90
+                        }
+                    }
+                },
+                {
+                    opcode: 'rc',
+                    text: 'ラジコン：左右 [A] /前後 [B] /上下 [C] /向き [D]',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        A: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        B: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        C: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        },
+                        D: {
+                            type: ArgumentType.NUMBER,
+                            defaultValue: 0
+                        }
+                    }
+                },
+                {
+                    opcode: 'wifi',
+                    text: 'Wi-FiのSSIDを [SSID] に、パスワードを [PASS] にする',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        SSID: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        PASS: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        }
+                    }
+                },
+                {
+                    opcode: 'mon',
+                    text: 'ミッションパッド検出を有効にする',
+                    blockType: BlockType.COMMAND
+                },
+                {
+                    opcode: 'moff',
+                    text: 'ミッションパッド検出を無効にする',
+                    blockType: BlockType.COMMAND
+                },
+                {
+                    opcode: 'mdirection',
+                    text: 'ミッションパッド検出を [MDIRECTION] にする',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        MDIRECTION: {
+                            type: ArgumentType.NUMBER,
+                            menu: 'MID_DIRECTIONS',
+                            defaultValue: 2
+                        }
+                    }
+                },
+                {
+                    opcode: 'ap',
+                    text: '接続先のSSID [SSID] 、パスワード [PASS] でステーションモードにする',
+                    blockType: BlockType.COMMAND,
+                    arguments: {
+                        SSID: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        },
+                        PASS: {
+                            type: ArgumentType.STRING,
+                            defaultValue: ''
+                        }
+                    }
+                },
+                {
+                    opcode: 'repSpeed',
+                    text: '飛行速度(cm/秒)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'repTime',
+                    text: '飛行時間',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'repSNR',
+                    text: 'Wi-Fi電波強度',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'repSDK',
+                    text: 'Tello SDKバージョン',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'repSN',
+                    text: 'Telloシリアルナンバー',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'popResponse',
+                    text: 'レスポンスのみ取得する',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'reset',
+                    text: 'リセット',
+                    blockType: BlockType.COMMAND
+                },
+                {
+                    opcode: 'status_mid',
+                    text: 'ミッションパッドID',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_x',
+                    text: 'ミッションパッドX座標',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_y',
+                    text: 'ミッションパッドY座標',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_z',
+                    text: 'ミッションパッドZ座標',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_pitch',
+                    text: 'ピッチ角(°)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_roll',
+                    text: 'ロール角(°)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_yaw',
+                    text: 'ヨー角(°)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_vgx',
+                    text: 'X軸速度(cm/秒)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_vgy',
+                    text: 'Y軸速度(cm/秒)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_vgz',
+                    text: 'Z軸速度(cm/秒)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_templ',
+                    text: '最低温度(℃)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_temph',
+                    text: '最高温度(℃)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_tof',
+                    text: '飛行距離(cm)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_h',
+                    text: '飛行高度(cm)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_bat',
+                    text: 'バッテリー残量(％)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_baro',
+                    text: '気圧換算高度(cm)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_time',
+                    text: 'モーター使用時間',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_agx',
+                    text: 'X軸加速度(mG)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_agy',
+                    text: 'Y軸加速度(mG)',
+                    blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'status_agz',
+                    text: 'Z軸加速度(mG)',
+                    blockType: BlockType.REPORTER
                 }
             ],
             menus: {
+                DIRECTIONS: {
+                    acceptReporters: true,
+                    items: [
+                        { text: '前', value: 'f' },
+                        { text: '後', value: 'b' },
+                        { text: '左', value: 'l' },
+                        { text: '右', value: 'r' },
+                        { text: '上', value: 'u' },
+                        { text: '下', value: 'd' }
+                    ]
+                },
+                FLIP_DIRECTIONS: {
+                    acceptReporters: true,
+                    items: [
+                        { text: '前', value: 'f' },
+                        { text: '後', value: 'b' },
+                        { text: '左', value: 'l' },
+                        { text: '右', value: 'r' }
+                    ]
+                },
+                MISSION_PAD_ID: {
+                    acceptReporters: true,
+                    items: [
+                        { text: 'm1', value: 'm1' },
+                        { text: 'm2', value: 'm2' },
+                        { text: 'm3', value: 'm3' },
+                        { text: 'm4', value: 'm4' },
+                        { text: 'm5', value: 'm5' },
+                        { text: 'm6', value: 'm6' },
+                        { text: 'm7', value: 'm7' },
+                        { text: 'm8', value: 'm8' }
+                    ]
+                },
+                MID_DIRECTIONS: {
+                    acceptReporters: true,
+                    items: [
+                        { text: '下のみ', value: 0 },
+                        { text: '前のみ', value: 1 },
+                        { text: '下前両方', value: 2 }
+                    ]
+                }
             },
         };
     }
@@ -242,13 +681,6 @@ class Scratch3jttello {
             return result.message;
         });
     }
-    flip(){
-        return this._client.request('flip f')
-        .then( result => {
-            console.log('flip result:', result);
-            return result.message;
-        });
-    }
 
     land(){
         return this._client.request('land')
@@ -258,10 +690,37 @@ class Scratch3jttello {
         });
     }
 
+    streamon(){
+        return this._client.request('streamon')
+        .then( result => {
+            console.log('streamon result:', result);
+            return result.message;
+        });
+    }
+
+    streamoff(){
+        return this._client.request('streamoff')
+        .then( result => {
+            console.log('streamoff result:', result);
+            return result.message;
+        });
+    }
+
+    /**
+     * ToDo: this command must be immediately
+     */
+    emergency(){
+        return this._client.request('emergency', 'async', 1)
+        .then( result => {
+            console.log('streamoff result:', result);
+            return result.message;
+        });
+    }
+
     up(args){
         return this._client.request('up ' + args.CM)
         .then( result => {
-            console.log('up result:', result);
+            console.log('emergency result:', result);
             return result.message;
         });
     }
@@ -318,6 +777,328 @@ class Scratch3jttello {
         return this._client.request('ccw ' + args.DEGREE)
         .then( result => {
             console.log('ccw result:', result);
+            return result.message;
+        });
+    }
+
+    flip(args){
+        return this._client.request('flip ' + args.DIRECTION)
+        .then( result => {
+            console.log('flip result:', result);
+            return result.message;
+        });
+    }
+
+    go(args){
+        return this._client.request('go ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED)
+        .then( result => {
+            console.log('go result:', result);
+            return result.message;
+        });
+    }
+
+    /**
+     * ToDo: this command must be immediately
+     */
+    stop(){
+        return this._client.request('stop', 'async', 1)
+        .then( result => {
+            console.log('stop result:', result);
+            return result.message;
+        });
+    }
+
+    curve(args){
+        return this._client.request('curve ' + args.X1 + ' ' + args.Y1 + ' ' + args.Z1 + ' ' + args.X2 + ' ' + args.Y2 + ' ' + args.Z2 + ' ' + args.SPEED)
+        .then( result => {
+            console.log('curve result:', result);
+            return result.message;
+        });
+    }
+
+    gomid(args){
+        return this._client.request('go ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED + ' ' + args.MID)
+        .then( result => {
+            console.log('gomid result:', result);
+            return result.message;
+        });
+    }
+
+    curvemid(args){
+        return this._client.request('curve ' + args.X1 + ' ' + args.Y1 + ' ' + args.Z1 + ' ' + args.X2 + ' ' + args.Y2 + ' ' + args.Z2 + ' ' + args.SPEED + ' ' + args.MID)
+        .then( result => {
+            console.log('curvemid result:', result);
+            return result.message;
+        });
+    }
+
+    jumpmid(args){
+        return this._client.request('jump ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED + ' ' + args.YAW + ' ' + args.MID1 + ' ' + args.MID2)
+        .then( result => {
+            console.log('jumpmid result:', result);
+            return result.message;
+        });
+    }
+
+    speed(args){
+        return this._client.request('speed ' + args.SPEED)
+        .then( result => {
+            console.log('speed result:', result);
+            return result.message;
+        });
+    }
+
+    /**
+     * ToDo: this command must be immediately
+     */
+    rc(args){
+        return this._client.request('rc ' + args.A + ' ' + args.B + ' ' + args.C + ' ' + args.D, 'async', 1)
+        .then( result => {
+            console.log('rc result:', result);
+            return result.message;
+        });
+    }
+
+    wifi(args){
+        return this._client.request('wifi ' + args.SSID + ' ' + args.PASS)
+        .then( result => {
+            console.log('wifi result:', result);
+            return result.message;
+        });
+    }
+
+    mon(){
+        return this._client.request('mon')
+        .then( result => {
+            console.log('mon result:', result);
+            return result.message;
+        });
+    }
+
+    moff(){
+        return this._client.request('moff')
+        .then( result => {
+            console.log('moff result:', result);
+            return result.message;
+        });
+    }
+
+    mdirection(args){
+        return this._client.request('mdirection ' + args.MDIRECTION)
+        .then( result => {
+            console.log('mdirection result:', result);
+            return result.message;
+        });
+    }
+
+    ap(args){
+        return this._client.request('ap ' + args.SSID + ' ' + args.PASS)
+        .then( result => {
+            console.log('ap result:', result);
+            return result.message;
+        });
+    }
+
+    repSpeed(){
+        return this._client.request('speed?')
+        .then( result => {
+            console.log('speed? result:', result);
+            return result.message;
+        });
+    }
+
+    repTime(){
+        return this._client.request('time?')
+        .then( result => {
+            console.log('time? result:', result);
+            return result.message;
+        });
+    }
+
+    repSNR(){
+        return this._client.request('wifi?')
+        .then( result => {
+            console.log('wifi? result:', result);
+            return result.message;
+        });
+    }
+
+    repSDK(){
+        return this._client.request('sdk?')
+        .then( result => {
+            console.log('sdk? result:', result);
+            return result.message;
+        });
+    }
+
+    repSN(){
+        return this._client.request('sn?')
+        .then( result => {
+            console.log('sn? result:', result);
+            return result.message;
+        });
+    }
+
+    reset(){
+        return 'unimplemented yet';
+    }
+
+    status_mid(){
+        return this._client.request('mid', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_mid result:', result);
+            return result.message;
+        });
+    }
+
+    status_x(){
+        return this._client.request('x', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_x result:', result);
+            return result.message;
+        });
+    }
+
+    status_y(){
+        return this._client.request('y', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_y result:', result);
+            return result.message;
+        });
+    }
+
+    status_z(){
+        return this._client.request('z', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_z result:', result);
+            return result.message;
+        });
+    }
+
+    status_pitch(){
+        return this._client.request('pitch', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_pitch result:', result);
+            return result.message;
+        });
+    }
+
+    status_roll(){
+        return this._client.request('roll', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_roll result:', result);
+            return result.message;
+        });
+    }
+
+    status_yaw(){
+        return this._client.request('yaw', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_yaw result:', result);
+            return result.message;
+        });
+    }
+
+    status_vgx(){
+        return this._client.request('vgx', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_vgx result:', result);
+            return result.message;
+        });
+    }
+
+    status_vgy(){
+        return this._client.request('vgy', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_vgy result:', result);
+            return result.message;
+        });
+    }
+
+    status_vgz(){
+        return this._client.request('vgz', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_vgz result:', result);
+            return result.message;
+        });
+    }
+
+    status_templ(){
+        return this._client.request('templ', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_templ result:', result);
+            return result.message;
+        });
+    }
+
+    status_temph(){
+        return this._client.request('temph', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_temph result:', result);
+            return result.message;
+        });
+    }
+
+    status_tof(){
+        return this._client.request('tof', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_tof result:', result);
+            return result.message;
+        });
+    }
+
+    status_h(){
+        return this._client.request('h', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_h result:', result);
+            return result.message;
+        });
+    }
+
+    status_bat(){
+        return this._client.request('bat', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_bat result:', result);
+            return result.message;
+        });
+    }
+
+    status_baro(){
+        return this._client.request('baro', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_baro result:', result);
+            return result.message;
+        });
+    }
+
+    status_time(){
+        return this._client.request('time', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_time result:', result);
+            return result.message;
+        });
+    }
+
+    status_agx(){
+        return this._client.request('agx', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_agx result:', result);
+            return result.message;
+        });
+    }
+
+    status_agy(){
+        return this._client.request('agy', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_agy result:', result);
+            return result.message;
+        });
+    }
+
+    status_agz(){
+        return this._client.request('agz', 'tellostatus', 1)
+        .then( result => {
+            console.log('status_agz result:', result);
             return result.message;
         });
     }

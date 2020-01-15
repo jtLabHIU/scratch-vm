@@ -2,7 +2,7 @@
  * @file IO Device to jtS3Helper for Scratch3
  *      helper.js
  * @module scratch-vm/src/io/helper
- * @version 0.00.191106a
+ * @version 0.01.200104a
  * @author TANAHASHI, Jiro <jt@do-johodai.ac.jp>
  * @license MIT (see 'LICENSE' file)
  * @copyright (C) 2019 jtLab, Hokkaido Information University
@@ -12,6 +12,8 @@ const dispatch = require('../dispatch/central-dispatch');
 const Variable = require('../engine/variable');
 const JSONRPC = require('../util/jsonrpc');
 const log = require('../util/log');
+
+const LOCATION = { port:5963, endpoint:'jtS3H' };
 
 class Helper extends JSONRPC{
     constructor(runtime){
@@ -27,7 +29,7 @@ class Helper extends JSONRPC{
         this._watchdogTerminater = false;
         this._responseBuffer = [];
 
-        this.open({port:5963, endpoint:'jtS3H'});
+        this.open(LOCATION);
     }
 
     /**
@@ -35,7 +37,14 @@ class Helper extends JSONRPC{
      * @returns {boolean} true if connection has been established with jtS3Helper 
      */
     isOpen(){
-        return this._comm.sock && this._comm.sock.readyState == WebSocket.OPEN;
+        return new Promise( resolve => {
+            const status = this._comm.sock && this._comm.sock.readyState == WebSocket.OPEN;
+            if(status){
+                
+            }
+        }).then( result => {
+            return result;
+        });
     }
 
     open(param){
