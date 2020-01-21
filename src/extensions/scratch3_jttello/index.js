@@ -37,6 +37,12 @@ class Scratch3jttello {
         this._client = new WSC({portComm:5963, apiComm:'jtS3H'});
         this._client.init();
         console.log('dispatch from extention:', dispatch.services);
+
+        this._lastResponse = {
+            'commID': 0,
+            'result': false,
+            'message': 'nothing has been requested'
+        };
     }
 
 
@@ -53,7 +59,7 @@ class Scratch3jttello {
                 {
                     opcode: 'connect',
                     text: 'TELLO- [TELLOID] に接続',
-                    blockType: BlockType.REPORTER,
+                    blockType: BlockType.COMMAND,
                     arguments: {
                         TELLOID: {
                             type: ArgumentType.STRING,
@@ -61,6 +67,11 @@ class Scratch3jttello {
 //                            defaultValue: "D3F077"
                         }
                     }
+                },
+                {
+                    opcode: 'lastResponse',
+                    text: 'Telloからの返答',
+                    blockType: BlockType.REPORTER
                 },
                 {
                     opcode: 'command',
@@ -477,11 +488,6 @@ class Scratch3jttello {
                     blockType: BlockType.REPORTER
                 },
                 {
-                    opcode: 'popResponse',
-                    text: 'レスポンスのみ取得する',
-                    blockType: BlockType.REPORTER
-                },
-                {
                     opcode: 'reset',
                     text: 'リセット',
                     blockType: BlockType.COMMAND
@@ -639,7 +645,7 @@ class Scratch3jttello {
                 'name': args.TELLOID,
                 'ssid': 'TELLO-' + args.TELLOID,
                 'mac': args.TELLOID,
-                'ip': '192.168.10.1',
+                'ip': '',   //192.168.10.1
                 'port': {'udp':8889},
                 'via': {'udp':8889},
                 'downstream': [{'udp':8890}, {'udp':11111}]
@@ -647,9 +653,10 @@ class Scratch3jttello {
             this.log(`connect start`);
         return this._client.request('addDevice ' + JSON.stringify(deviceInfo), 'module')
         .then( result => {
-            this._client.request('connect ' + args.TELLOID, 'module');
+            return this._client.request('connect ' + args.TELLOID, 'module');
         }).then( result => {
             this.log('connect result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -657,20 +664,18 @@ class Scratch3jttello {
         return this._client.request('command')
         .then( result => {
             console.log('command result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
-    popResponse(){
-        return this._client.request('popResponse')
-        .then( result => {
-            console.log('popResponse result:', result);
-            return result.message;
-        });
+    lastResponse(){
+        return this._lastResponse.message;
     }
     battery(){
         return this._client.request('battery?')
         .then( result => {
             console.log('bettery? result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -678,6 +683,7 @@ class Scratch3jttello {
         return this._client.request('takeoff')
         .then( result => {
             console.log('takeoff result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -686,6 +692,7 @@ class Scratch3jttello {
         return this._client.request('land')
         .then( result => {
             console.log('land result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -694,6 +701,7 @@ class Scratch3jttello {
         return this._client.request('streamon')
         .then( result => {
             console.log('streamon result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -702,6 +710,7 @@ class Scratch3jttello {
         return this._client.request('streamoff')
         .then( result => {
             console.log('streamoff result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -713,6 +722,7 @@ class Scratch3jttello {
         return this._client.request('emergency', 'async', 1)
         .then( result => {
             console.log('streamoff result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -721,6 +731,7 @@ class Scratch3jttello {
         return this._client.request('up ' + args.CM)
         .then( result => {
             console.log('emergency result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -729,6 +740,7 @@ class Scratch3jttello {
         return this._client.request('down ' + args.CM)
         .then( result => {
             console.log('down result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -737,6 +749,7 @@ class Scratch3jttello {
         return this._client.request('forward ' + args.CM)
         .then( result => {
             console.log('forward result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -745,6 +758,7 @@ class Scratch3jttello {
         return this._client.request('back ' + args.CM)
         .then( result => {
             console.log('back result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -753,6 +767,7 @@ class Scratch3jttello {
         return this._client.request('left ' + args.CM)
         .then( result => {
             console.log('left result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -761,6 +776,7 @@ class Scratch3jttello {
         return this._client.request('right ' + args.CM)
         .then( result => {
             console.log('right result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -769,6 +785,7 @@ class Scratch3jttello {
         return this._client.request('cw ' + args.DEGREE)
         .then( result => {
             console.log('cw result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -777,6 +794,7 @@ class Scratch3jttello {
         return this._client.request('ccw ' + args.DEGREE)
         .then( result => {
             console.log('ccw result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -785,6 +803,7 @@ class Scratch3jttello {
         return this._client.request('flip ' + args.DIRECTION)
         .then( result => {
             console.log('flip result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -793,6 +812,7 @@ class Scratch3jttello {
         return this._client.request('go ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED)
         .then( result => {
             console.log('go result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -804,6 +824,7 @@ class Scratch3jttello {
         return this._client.request('stop', 'async', 1)
         .then( result => {
             console.log('stop result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -812,6 +833,7 @@ class Scratch3jttello {
         return this._client.request('curve ' + args.X1 + ' ' + args.Y1 + ' ' + args.Z1 + ' ' + args.X2 + ' ' + args.Y2 + ' ' + args.Z2 + ' ' + args.SPEED)
         .then( result => {
             console.log('curve result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -820,6 +842,7 @@ class Scratch3jttello {
         return this._client.request('go ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED + ' ' + args.MID)
         .then( result => {
             console.log('gomid result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -828,6 +851,7 @@ class Scratch3jttello {
         return this._client.request('curve ' + args.X1 + ' ' + args.Y1 + ' ' + args.Z1 + ' ' + args.X2 + ' ' + args.Y2 + ' ' + args.Z2 + ' ' + args.SPEED + ' ' + args.MID)
         .then( result => {
             console.log('curvemid result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -836,6 +860,7 @@ class Scratch3jttello {
         return this._client.request('jump ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED + ' ' + args.YAW + ' ' + args.MID1 + ' ' + args.MID2)
         .then( result => {
             console.log('jumpmid result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -844,6 +869,7 @@ class Scratch3jttello {
         return this._client.request('speed ' + args.SPEED)
         .then( result => {
             console.log('speed result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -855,6 +881,7 @@ class Scratch3jttello {
         return this._client.request('rc ' + args.A + ' ' + args.B + ' ' + args.C + ' ' + args.D, 'async', 1)
         .then( result => {
             console.log('rc result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -863,6 +890,7 @@ class Scratch3jttello {
         return this._client.request('wifi ' + args.SSID + ' ' + args.PASS)
         .then( result => {
             console.log('wifi result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -871,6 +899,7 @@ class Scratch3jttello {
         return this._client.request('mon')
         .then( result => {
             console.log('mon result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -879,6 +908,7 @@ class Scratch3jttello {
         return this._client.request('moff')
         .then( result => {
             console.log('moff result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -887,6 +917,7 @@ class Scratch3jttello {
         return this._client.request('mdirection ' + args.MDIRECTION)
         .then( result => {
             console.log('mdirection result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -895,6 +926,7 @@ class Scratch3jttello {
         return this._client.request('ap ' + args.SSID + ' ' + args.PASS)
         .then( result => {
             console.log('ap result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -903,6 +935,7 @@ class Scratch3jttello {
         return this._client.request('speed?')
         .then( result => {
             console.log('speed? result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -911,6 +944,7 @@ class Scratch3jttello {
         return this._client.request('time?')
         .then( result => {
             console.log('time? result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -919,6 +953,7 @@ class Scratch3jttello {
         return this._client.request('wifi?')
         .then( result => {
             console.log('wifi? result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -927,6 +962,7 @@ class Scratch3jttello {
         return this._client.request('sdk?')
         .then( result => {
             console.log('sdk? result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }
@@ -935,6 +971,7 @@ class Scratch3jttello {
         return this._client.request('sn?')
         .then( result => {
             console.log('sn? result:', result);
+            this._lastResponse = result;
             return result.message;
         });
     }

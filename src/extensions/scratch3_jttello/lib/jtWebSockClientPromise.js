@@ -124,22 +124,39 @@ class jtWebSockClientPromise{
             const req =  commID + ':' + type + ':' + message;
 
             const waitPromise = new Promise( resolve => {
-                this.log('WSC request:', req);
-                this._sock.send(req);
-                watchdog = setInterval( () => {
-                    response = this.getResponse(commID)
-                    if(response && response.length){
-                        response = response[0];
-
-                        if(response){
-                            resolve(response);
-                        }
-                        timer = timer - interval;
-                        if(timer<0){
-                            resolve(false);
-                        }
+                const innerPromise = new Promise( resolve => {
+                    if(this._sock.readyState != WebSocket.OPEN){
+                        this.log('request: oops readyState is not WebSocket.OPEN');
+                        Promise.resolve(this.close())
+                        .then( (result) => {
+                            Promise.resolve(this.init())
+                            .then( (result) => {
+                                this.log('reconnect maneuver: init()', result);
+                                resolve(true);
+                            });
+                        });
+                    }else{
+                        resolve(false);
                     }
-                }, interval);
+                }).then( (result) => {
+                    this.log('reconnect maneuver: result', result);
+                    this.log('WSC request:', req);
+                    this._sock.send(req);
+                    watchdog = setInterval( () => {
+                        response = this.getResponse(commID)
+                        if(response && response.length){
+                            response = response[0];
+
+                            if(response){
+                                resolve(response);
+                            }
+                            timer = timer - interval;
+                            if(timer<0){
+                                resolve(false);
+                            }
+                        }
+                    }, interval);
+                });
             }).then( (response) => {
                 clearInterval(watchdog);
                 if(response){
