@@ -9,6 +9,13 @@
  */
 //const WebSocket = require('ws');
 
+/**
+ * WARNING
+ * 
+ * THIS MODULE WAS DEPRECATED
+ * MOVED TO scratch-vm/src/io/helper
+ */
+
 class jtWebSockClientPromise{
     constructor(args){
         this._hostComm = 'localhost';
@@ -112,16 +119,23 @@ class jtWebSockClientPromise{
         return;
     }
 
-    request(message = 'command', type = 'sync', timeout = 10000){
+    request(message = 'command', target = 'module', type = 'sync', timeout = null){
         return new Promise( resolve => {
             let result = null;
             let response = null;
-            let timer = timeout;
             const interval = 5;
             let watchdog = null;
+            let timer = timeout;
+            if(timeout === null){
+                if(type == 'async' || type == 'broadcast' || type == 'status'){
+                    timer = 1;
+                }else{
+                    timer = 10000;
+                } 
+            }
 
             const commID = (++this._commID);
-            const req =  commID + ':' + type + ':' + message;
+            const req =  commID + ':' + target + ':' + type + ':' + message;
 
             const waitPromise = new Promise( resolve => {
                 const innerPromise = new Promise( resolve => {
@@ -145,6 +159,7 @@ class jtWebSockClientPromise{
                     watchdog = setInterval( () => {
                         response = this.getResponse(commID)
                         if(response && response.length){
+                            this.log('WSC request response.length:', response.length, commID);
                             response = response[0];
 
                             if(response){
@@ -152,6 +167,7 @@ class jtWebSockClientPromise{
                             }
                             timer = timer - interval;
                             if(timer<0){
+                                this.log('WSC request response timeout:', commID);
                                 resolve(false);
                             }
                         }

@@ -34,8 +34,14 @@ class Scratch3jttello {
         this.runtime = runtime;
         //this._onTargetCreated = this._onTargetCreated.bind(this);
         //this.runtime.on('targetWasCreated', this._onTargetCreated);
-        this._client = new WSC({portComm:5963, apiComm:'jtS3H'});
-        this._client.init();
+        
+        // for jtWebSockClientPromise.js
+        //this._client = new WSC({portComm:5963, apiComm:'jtS3H'});
+        //this._client.init();
+
+        log.log(this.runtime.ioDevices);
+        this._client = this.runtime.ioDevices.helper;
+
         console.log('dispatch from extention:', dispatch.services);
 
         this._lastResponse = {
@@ -69,9 +75,19 @@ class Scratch3jttello {
                     }
                 },
                 {
+                    opcode: 'lastResult',
+                    text: 'コマンドが成功した',
+                    blockType: BlockType.BOOLEAN
+                },
+                {
                     opcode: 'lastResponse',
                     text: 'Telloからの返答',
                     blockType: BlockType.REPORTER
+                },
+                {
+                    opcode: 'reset',
+                    text: 'リセット',
+                    blockType: BlockType.COMMAND
                 },
                 {
                     opcode: 'command',
@@ -488,11 +504,6 @@ class Scratch3jttello {
                     blockType: BlockType.REPORTER
                 },
                 {
-                    opcode: 'reset',
-                    text: 'リセット',
-                    blockType: BlockType.COMMAND
-                },
-                {
                     opcode: 'status_mid',
                     text: 'ミッションパッドID',
                     blockType: BlockType.REPORTER
@@ -661,18 +672,21 @@ class Scratch3jttello {
         });
     }
     command(){
-        return this._client.request('command')
+        return this._client.request('command', 'tello')
         .then( result => {
             console.log('command result:', result);
             this._lastResponse = result;
             return result.message;
         });
     }
+    lastResult(){
+        return this._lastResponse.result;
+    }
     lastResponse(){
         return this._lastResponse.message;
     }
     battery(){
-        return this._client.request('battery?')
+        return this._client.request('battery?', 'tello')
         .then( result => {
             console.log('bettery? result:', result);
             this._lastResponse = result;
@@ -680,7 +694,7 @@ class Scratch3jttello {
         });
     }
     takeoff(){
-        return this._client.request('takeoff')
+        return this._client.request('takeoff', 'tello')
         .then( result => {
             console.log('takeoff result:', result);
             this._lastResponse = result;
@@ -689,7 +703,7 @@ class Scratch3jttello {
     }
 
     land(){
-        return this._client.request('land')
+        return this._client.request('land', 'tello')
         .then( result => {
             console.log('land result:', result);
             this._lastResponse = result;
@@ -698,7 +712,7 @@ class Scratch3jttello {
     }
 
     streamon(){
-        return this._client.request('streamon')
+        return this._client.request('streamon', 'tello')
         .then( result => {
             console.log('streamon result:', result);
             this._lastResponse = result;
@@ -707,7 +721,7 @@ class Scratch3jttello {
     }
 
     streamoff(){
-        return this._client.request('streamoff')
+        return this._client.request('streamoff', 'tello')
         .then( result => {
             console.log('streamoff result:', result);
             this._lastResponse = result;
@@ -719,7 +733,7 @@ class Scratch3jttello {
      * ToDo: this command must be immediately
      */
     emergency(){
-        return this._client.request('emergency', 'async', 1)
+        return this._client.request('emergency', 'tello', 'async')
         .then( result => {
             console.log('streamoff result:', result);
             this._lastResponse = result;
@@ -728,7 +742,7 @@ class Scratch3jttello {
     }
 
     up(args){
-        return this._client.request('up ' + args.CM)
+        return this._client.request('up ' + args.CM, 'tello')
         .then( result => {
             console.log('emergency result:', result);
             this._lastResponse = result;
@@ -737,7 +751,7 @@ class Scratch3jttello {
     }
 
     down(args){
-        return this._client.request('down ' + args.CM)
+        return this._client.request('down ' + args.CM, 'tello')
         .then( result => {
             console.log('down result:', result);
             this._lastResponse = result;
@@ -746,7 +760,7 @@ class Scratch3jttello {
     }
 
     forward(args){
-        return this._client.request('forward ' + args.CM)
+        return this._client.request('forward ' + args.CM, 'tello')
         .then( result => {
             console.log('forward result:', result);
             this._lastResponse = result;
@@ -755,7 +769,7 @@ class Scratch3jttello {
     }
 
     back(args){
-        return this._client.request('back ' + args.CM)
+        return this._client.request('back ' + args.CM, 'tello')
         .then( result => {
             console.log('back result:', result);
             this._lastResponse = result;
@@ -764,7 +778,7 @@ class Scratch3jttello {
     }
 
     left(args){
-        return this._client.request('left ' + args.CM)
+        return this._client.request('left ' + args.CM, 'tello')
         .then( result => {
             console.log('left result:', result);
             this._lastResponse = result;
@@ -773,7 +787,7 @@ class Scratch3jttello {
     }
 
     right(args){
-        return this._client.request('right ' + args.CM)
+        return this._client.request('right ' + args.CM, 'tello')
         .then( result => {
             console.log('right result:', result);
             this._lastResponse = result;
@@ -782,7 +796,7 @@ class Scratch3jttello {
     }
 
     cw(args){
-        return this._client.request('cw ' + args.DEGREE)
+        return this._client.request('cw ' + args.DEGREE, 'tello')
         .then( result => {
             console.log('cw result:', result);
             this._lastResponse = result;
@@ -791,7 +805,7 @@ class Scratch3jttello {
     }
 
     ccw(args){
-        return this._client.request('ccw ' + args.DEGREE)
+        return this._client.request('ccw ' + args.DEGREE, 'tello')
         .then( result => {
             console.log('ccw result:', result);
             this._lastResponse = result;
@@ -800,7 +814,7 @@ class Scratch3jttello {
     }
 
     flip(args){
-        return this._client.request('flip ' + args.DIRECTION)
+        return this._client.request('flip ' + args.DIRECTION, 'tello')
         .then( result => {
             console.log('flip result:', result);
             this._lastResponse = result;
@@ -809,7 +823,7 @@ class Scratch3jttello {
     }
 
     go(args){
-        return this._client.request('go ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED)
+        return this._client.request('go ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED, 'tello')
         .then( result => {
             console.log('go result:', result);
             this._lastResponse = result;
@@ -821,7 +835,7 @@ class Scratch3jttello {
      * ToDo: this command must be immediately
      */
     stop(){
-        return this._client.request('stop', 'async', 1)
+        return this._client.request('stop', 'tello', 'async')
         .then( result => {
             console.log('stop result:', result);
             this._lastResponse = result;
@@ -830,7 +844,7 @@ class Scratch3jttello {
     }
 
     curve(args){
-        return this._client.request('curve ' + args.X1 + ' ' + args.Y1 + ' ' + args.Z1 + ' ' + args.X2 + ' ' + args.Y2 + ' ' + args.Z2 + ' ' + args.SPEED)
+        return this._client.request('curve ' + args.X1 + ' ' + args.Y1 + ' ' + args.Z1 + ' ' + args.X2 + ' ' + args.Y2 + ' ' + args.Z2 + ' ' + args.SPEED, 'tello')
         .then( result => {
             console.log('curve result:', result);
             this._lastResponse = result;
@@ -839,7 +853,7 @@ class Scratch3jttello {
     }
 
     gomid(args){
-        return this._client.request('go ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED + ' ' + args.MID)
+        return this._client.request('go ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED + ' ' + args.MID, 'tello')
         .then( result => {
             console.log('gomid result:', result);
             this._lastResponse = result;
@@ -848,7 +862,7 @@ class Scratch3jttello {
     }
 
     curvemid(args){
-        return this._client.request('curve ' + args.X1 + ' ' + args.Y1 + ' ' + args.Z1 + ' ' + args.X2 + ' ' + args.Y2 + ' ' + args.Z2 + ' ' + args.SPEED + ' ' + args.MID)
+        return this._client.request('curve ' + args.X1 + ' ' + args.Y1 + ' ' + args.Z1 + ' ' + args.X2 + ' ' + args.Y2 + ' ' + args.Z2 + ' ' + args.SPEED + ' ' + args.MID, 'tello')
         .then( result => {
             console.log('curvemid result:', result);
             this._lastResponse = result;
@@ -857,7 +871,7 @@ class Scratch3jttello {
     }
 
     jumpmid(args){
-        return this._client.request('jump ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED + ' ' + args.YAW + ' ' + args.MID1 + ' ' + args.MID2)
+        return this._client.request('jump ' + args.X + ' ' + args.Y + ' ' + args.Z + ' ' + args.SPEED + ' ' + args.YAW + ' ' + args.MID1 + ' ' + args.MID2, 'tello')
         .then( result => {
             console.log('jumpmid result:', result);
             this._lastResponse = result;
@@ -866,7 +880,7 @@ class Scratch3jttello {
     }
 
     speed(args){
-        return this._client.request('speed ' + args.SPEED)
+        return this._client.request('speed ' + args.SPEED, 'tello')
         .then( result => {
             console.log('speed result:', result);
             this._lastResponse = result;
@@ -878,7 +892,7 @@ class Scratch3jttello {
      * ToDo: this command must be immediately
      */
     rc(args){
-        return this._client.request('rc ' + args.A + ' ' + args.B + ' ' + args.C + ' ' + args.D, 'async', 1)
+        return this._client.request('rc ' + args.A + ' ' + args.B + ' ' + args.C + ' ' + args.D, 'tello', 'async')
         .then( result => {
             console.log('rc result:', result);
             this._lastResponse = result;
@@ -887,7 +901,7 @@ class Scratch3jttello {
     }
 
     wifi(args){
-        return this._client.request('wifi ' + args.SSID + ' ' + args.PASS)
+        return this._client.request('wifi ' + args.SSID + ' ' + args.PASS, 'tello')
         .then( result => {
             console.log('wifi result:', result);
             this._lastResponse = result;
@@ -896,7 +910,7 @@ class Scratch3jttello {
     }
 
     mon(){
-        return this._client.request('mon')
+        return this._client.request('mon', 'tello')
         .then( result => {
             console.log('mon result:', result);
             this._lastResponse = result;
@@ -905,7 +919,7 @@ class Scratch3jttello {
     }
 
     moff(){
-        return this._client.request('moff')
+        return this._client.request('moff', 'tello')
         .then( result => {
             console.log('moff result:', result);
             this._lastResponse = result;
@@ -914,7 +928,7 @@ class Scratch3jttello {
     }
 
     mdirection(args){
-        return this._client.request('mdirection ' + args.MDIRECTION)
+        return this._client.request('mdirection ' + args.MDIRECTION, 'tello')
         .then( result => {
             console.log('mdirection result:', result);
             this._lastResponse = result;
@@ -923,7 +937,7 @@ class Scratch3jttello {
     }
 
     ap(args){
-        return this._client.request('ap ' + args.SSID + ' ' + args.PASS)
+        return this._client.request('ap ' + args.SSID + ' ' + args.PASS, 'tello')
         .then( result => {
             console.log('ap result:', result);
             this._lastResponse = result;
@@ -932,7 +946,7 @@ class Scratch3jttello {
     }
 
     repSpeed(){
-        return this._client.request('speed?')
+        return this._client.request('speed?', 'tello')
         .then( result => {
             console.log('speed? result:', result);
             this._lastResponse = result;
@@ -941,7 +955,7 @@ class Scratch3jttello {
     }
 
     repTime(){
-        return this._client.request('time?')
+        return this._client.request('time?', 'tello')
         .then( result => {
             console.log('time? result:', result);
             this._lastResponse = result;
@@ -950,7 +964,7 @@ class Scratch3jttello {
     }
 
     repSNR(){
-        return this._client.request('wifi?')
+        return this._client.request('wifi?', 'tello')
         .then( result => {
             console.log('wifi? result:', result);
             this._lastResponse = result;
@@ -959,7 +973,7 @@ class Scratch3jttello {
     }
 
     repSDK(){
-        return this._client.request('sdk?')
+        return this._client.request('sdk?', 'tello')
         .then( result => {
             console.log('sdk? result:', result);
             this._lastResponse = result;
@@ -968,7 +982,7 @@ class Scratch3jttello {
     }
 
     repSN(){
-        return this._client.request('sn?')
+        return this._client.request('sn?', 'tello')
         .then( result => {
             console.log('sn? result:', result);
             this._lastResponse = result;
@@ -977,11 +991,16 @@ class Scratch3jttello {
     }
 
     reset(){
-        return 'unimplemented yet';
+        return this._client.request('reset', 'module', 'async', 1000)
+        .then( result => {
+            console.log('reset(module) result:', result);
+            this._lastResponse = result;
+            return result.message;
+        });
     }
 
     status_mid(){
-        return this._client.request('mid', 'tellostatus', 1)
+        return this._client.request('mid', 'tello', 'status')
         .then( result => {
             console.log('status_mid result:', result);
             return result.message;
@@ -989,7 +1008,7 @@ class Scratch3jttello {
     }
 
     status_x(){
-        return this._client.request('x', 'tellostatus', 1)
+        return this._client.request('x', 'tello', 'status')
         .then( result => {
             console.log('status_x result:', result);
             return result.message;
@@ -997,7 +1016,7 @@ class Scratch3jttello {
     }
 
     status_y(){
-        return this._client.request('y', 'tellostatus', 1)
+        return this._client.request('y', 'tello', 'status')
         .then( result => {
             console.log('status_y result:', result);
             return result.message;
@@ -1005,7 +1024,7 @@ class Scratch3jttello {
     }
 
     status_z(){
-        return this._client.request('z', 'tellostatus', 1)
+        return this._client.request('z', 'tello', 'status')
         .then( result => {
             console.log('status_z result:', result);
             return result.message;
@@ -1013,7 +1032,7 @@ class Scratch3jttello {
     }
 
     status_pitch(){
-        return this._client.request('pitch', 'tellostatus', 1)
+        return this._client.request('pitch', 'tello', 'status')
         .then( result => {
             console.log('status_pitch result:', result);
             return result.message;
@@ -1021,7 +1040,7 @@ class Scratch3jttello {
     }
 
     status_roll(){
-        return this._client.request('roll', 'tellostatus', 1)
+        return this._client.request('roll', 'tello', 'status')
         .then( result => {
             console.log('status_roll result:', result);
             return result.message;
@@ -1029,7 +1048,7 @@ class Scratch3jttello {
     }
 
     status_yaw(){
-        return this._client.request('yaw', 'tellostatus', 1)
+        return this._client.request('yaw', 'tello', 'status')
         .then( result => {
             console.log('status_yaw result:', result);
             return result.message;
@@ -1037,7 +1056,7 @@ class Scratch3jttello {
     }
 
     status_vgx(){
-        return this._client.request('vgx', 'tellostatus', 1)
+        return this._client.request('vgx', 'tello', 'status')
         .then( result => {
             console.log('status_vgx result:', result);
             return result.message;
@@ -1045,7 +1064,7 @@ class Scratch3jttello {
     }
 
     status_vgy(){
-        return this._client.request('vgy', 'tellostatus', 1)
+        return this._client.request('vgy', 'tello', 'status')
         .then( result => {
             console.log('status_vgy result:', result);
             return result.message;
@@ -1053,7 +1072,7 @@ class Scratch3jttello {
     }
 
     status_vgz(){
-        return this._client.request('vgz', 'tellostatus', 1)
+        return this._client.request('vgz', 'tello', 'status')
         .then( result => {
             console.log('status_vgz result:', result);
             return result.message;
@@ -1061,7 +1080,7 @@ class Scratch3jttello {
     }
 
     status_templ(){
-        return this._client.request('templ', 'tellostatus', 1)
+        return this._client.request('templ', 'tello', 'status')
         .then( result => {
             console.log('status_templ result:', result);
             return result.message;
@@ -1069,7 +1088,7 @@ class Scratch3jttello {
     }
 
     status_temph(){
-        return this._client.request('temph', 'tellostatus', 1)
+        return this._client.request('temph', 'tello', 'status')
         .then( result => {
             console.log('status_temph result:', result);
             return result.message;
@@ -1077,7 +1096,7 @@ class Scratch3jttello {
     }
 
     status_tof(){
-        return this._client.request('tof', 'tellostatus', 1)
+        return this._client.request('tof', 'tello', 'status')
         .then( result => {
             console.log('status_tof result:', result);
             return result.message;
@@ -1085,7 +1104,7 @@ class Scratch3jttello {
     }
 
     status_h(){
-        return this._client.request('h', 'tellostatus', 1)
+        return this._client.request('h', 'tello', 'status')
         .then( result => {
             console.log('status_h result:', result);
             return result.message;
@@ -1093,7 +1112,7 @@ class Scratch3jttello {
     }
 
     status_bat(){
-        return this._client.request('bat', 'tellostatus', 1)
+        return this._client.request('bat', 'tello', 'status')
         .then( result => {
             console.log('status_bat result:', result);
             return result.message;
@@ -1101,7 +1120,7 @@ class Scratch3jttello {
     }
 
     status_baro(){
-        return this._client.request('baro', 'tellostatus', 1)
+        return this._client.request('baro', 'tello', 'status')
         .then( result => {
             console.log('status_baro result:', result);
             return result.message;
@@ -1109,7 +1128,7 @@ class Scratch3jttello {
     }
 
     status_time(){
-        return this._client.request('time', 'tellostatus', 1)
+        return this._client.request('time', 'tello', 'status')
         .then( result => {
             console.log('status_time result:', result);
             return result.message;
@@ -1117,7 +1136,7 @@ class Scratch3jttello {
     }
 
     status_agx(){
-        return this._client.request('agx', 'tellostatus', 1)
+        return this._client.request('agx', 'tello', 'status')
         .then( result => {
             console.log('status_agx result:', result);
             return result.message;
@@ -1125,7 +1144,7 @@ class Scratch3jttello {
     }
 
     status_agy(){
-        return this._client.request('agy', 'tellostatus', 1)
+        return this._client.request('agy', 'tello', 'status')
         .then( result => {
             console.log('status_agy result:', result);
             return result.message;
@@ -1133,7 +1152,7 @@ class Scratch3jttello {
     }
 
     status_agz(){
-        return this._client.request('agz', 'tellostatus', 1)
+        return this._client.request('agz', 'tello', 'status')
         .then( result => {
             console.log('status_agz result:', result);
             return result.message;
