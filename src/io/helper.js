@@ -2,10 +2,10 @@
  * @file IO Device to jtS3Helper for Scratch3
  *      helper.js
  * @module scratch-vm/src/io/helper
- * @version 1.00.200122a
+ * @version 1.01.200124a
  * @author TANAHASHI, Jiro <jt@do-johodai.ac.jp>
  * @license MIT (see 'LICENSE' file)
- * @copyright (C) 2019 jtLab, Hokkaido Information University
+ * @copyright (C) 2019-2020 jtLab, Hokkaido Information University
  */
 
 const dispatch = require('../dispatch/central-dispatch');
