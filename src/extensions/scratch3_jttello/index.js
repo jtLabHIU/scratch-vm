@@ -64,15 +64,24 @@ class Scratch3jttello {
             blocks: [
                 {
                     opcode: 'connect',
-                    text: 'TELLO- [TELLOID] に接続',
+                    text: 'TELLO- [TELLOID] に接続する',
                     blockType: BlockType.COMMAND,
                     arguments: {
                         TELLOID: {
                             type: ArgumentType.STRING,
                             defaultValue: "D2D555"
-//                            defaultValue: "D3F077"
                         }
                     }
+                },
+                {
+                    opcode: 'disconnect',
+                    text: 'TELLOとの接続を切る',
+                    blockType: BlockType.COMMAND
+                },
+                {
+                    opcode: 'isAlive',
+                    text: 'TELLOとの接続完了',
+                    blockType: BlockType.BOOLEAN
                 },
                 {
                     opcode: 'lastResult',
@@ -671,12 +680,28 @@ class Scratch3jttello {
             return result.message;
         });
     }
+    disconnect(){
+        return this._client.request('disconnect', 'module')
+        .then( result => {
+            console.log('disconnect result:', result);
+            this._lastResponse = result;
+            return result.message;
+        });
+    }
     command(){
         return this._client.request('command', 'tello')
         .then( result => {
             console.log('command result:', result);
             this._lastResponse = result;
             return result.message;
+        });
+    }
+    isAlive(){
+        return this._client.request('isAlive', 'module')
+        .then( result => {
+            console.log('isAlive result:', result);
+            this._lastResponse = result;
+            return result.result;
         });
     }
     lastResult(){
