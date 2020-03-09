@@ -3,9 +3,7 @@ const BlockType = require('../../extension-support/block-type');
 const Cast = require('../../util/cast');
 const log = require('../../util/log');
 const formatMessage = require('format-message');
-//const ws = require('ws');
 const dispatch = require('../../dispatch/central-dispatch');
-const WSC = require('./lib/jtWebSockClientPromise');
 
 /**
  * Icon svg to be displayed at the left edge of each extension block, encoded as a data URI.
@@ -34,15 +32,8 @@ class Scratch3jttello {
         this.runtime = runtime;
         //this._onTargetCreated = this._onTargetCreated.bind(this);
         //this.runtime.on('targetWasCreated', this._onTargetCreated);
-        
-        // for jtWebSockClientPromise.js
-        //this._client = new WSC({portComm:5963, apiComm:'jtS3H'});
-        //this._client.init();
 
-        log.log(this.runtime.ioDevices);
         this._client = this.runtime.ioDevices.helper;
-
-        console.log('dispatch from extention:', dispatch.services);
 
         this._lastResponse = {
             'commID': 0,

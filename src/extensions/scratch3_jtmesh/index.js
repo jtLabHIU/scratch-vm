@@ -1,9 +1,9 @@
 const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
 const Cast = require('../../util/cast');
-const formatMessage = require('format-message');
 const log = require('../../util/log');
-const nets = require('nets');
+const formatMessage = require('format-message');
+const dispatch = require('../../dispatch/central-dispatch');
 
 /**
  * Icon svg to be displayed at the left edge of each extension block, encoded as a data URI.
@@ -23,7 +23,7 @@ const menuIconURI = blockIconURI;
  * @param {Runtime} runtime - the runtime instantiating this block package.
  * @constructor
  */
-class Scratch3jthttp {
+class Scratch3jtmesh {
     constructor (runtime) {
         /**
          * The runtime instantiating this block package.
@@ -31,12 +31,44 @@ class Scratch3jthttp {
          */
         this.runtime = runtime;
 
-        this._onTargetCreated = this._onTargetCreated.bind(this);
-        this.runtime.on('targetWasCreated', this._onTargetCreated);
-    }
+        //this._onTargetCreated = this._onTargetCreated.bind(this);
+        //this.runtime.on('targetWasCreated', this._onTargetCreated);
 
-    _onTargetCreated(){
-        log.log('jtMesh: targetWasCreated invoked.')
+        /**
+         * The client to jtS3Helper
+         * @type {Helper}
+         */
+        this._client = this.runtime.ioDevices.helper;
+
+        /**
+         * internal status
+         * @typedef {object} MeshStatus
+         * @property {boolean} serverRunning - started Mesh Server
+         * @property {boolean} connected - connected to Mesh
+         * @property {string|null} ip - the IP address of Mesh Server
+         * 
+         * @type {MeshStatus}
+         */
+        this._status = {
+            'serverRunning': false,
+            'connected': false,
+            'ip': null
+        }
+
+        /**
+         * last response from helper
+         * @typedef {object} HelperResponse
+         * @property {number} commID - helper communication ID
+         * @property {boolean} result - request result
+         * @property {string} message - result message
+         * 
+         * @type {HelperResponse}
+         */
+        this._lastResponse = {
+            'commID': 0,
+            'result': false,
+            'message': 'nothing has been requested'
+        };
     }
 
     /**
@@ -65,7 +97,7 @@ class Scratch3jthttp {
                     arguments: {
                         HOST: {
                             type: ArgumentType.STRING,
-                            defaultValue: "192.168.0.1"
+                            defaultValue: "127.0.0.1"
                         }
                     }
                 },
@@ -86,7 +118,7 @@ class Scratch3jthttp {
                     arguments: {
                         TARGET: {
                             type: ArgumentType.STRING,
-                            menu: 'SENSORS',
+                            //menu: 'SENSORS',
                             defaultValue: "slider"
                         }
                     }
@@ -104,62 +136,69 @@ class Scratch3jthttp {
         };
     }
 
-    /**
-     * Write log.
-     * @param {object} args - the block arguments.
-     * @property {number} TEXT - the text.
-     */
-    writeLog (args) {
-        const text = Cast.toString(args.TEXT);
-        log.log(text);
-    }
-
-    /**
-     * Get the browser.
-     * @return {number} - the user agent.
-     */
-    getBrowser () {
-        return navigator.userAgent;
-    }
-    /**
-     * Translates the text in the translate block to the language specified in the menu.
-     * @param {object} args - the block arguments.
-     * @return {Promise} - a promise that resolves after the response from the translate server.
-     */
-    getHTTP (args) {
-        let urlBase = args.URL;
-        urlBase += encodeURIComponent(args.MESSAGE);
-        let serverTimeoutMs = 1000;
-
-        const tempThis = this;
-        const translatePromise = new Promise(resolve => {
-            nets({
-                url: urlBase,
-                timeout: serverTimeoutMs
-            }, (err, res, body) => {
-                if (err) {
-                    log.warn(`nets error: ${err} res.statusCode = ${res.statusCode}`);
-                    resolve('');
-                    return '';
+    startMeshServer(){
+        if(this._status.serverRunning){
+            return 'server is already running'
+        } else if(this._status.connected){
+            return 'this client is already connected to other Mesh Server';
+        }else{
+            return this._client.request('start', 'mesh')
+            .then( result => {
+                console.log('startMeshServer result:', result);
+                this._lastResponse = result;
+                if(result.result){
+                    this._status.serverRunning = true;
+                    this._status.ip = result.message;
                 }
-                //const translated = JSON.parse(body).result;
-                //tempThis._translateResult = translated;
-                // Cache what we just translated so we don't keep making the
-                // same call over and over.
-                //tempThis._lastTextTranslated = args.WORDS;
-                //tempThis._lastLangTranslated = args.LANGUAGE;
-                //resolve(translated);
-                //return translated;
-                const result = (new TextDecoder).decode(body);
-                log.log(result);
-                resolve(result);
                 return result;
             });
+        }
+    }
 
+    connectMesh(args){
+        if(this._status.serverRunning){
+            return 'server is already running on this host'
+        } else {
+            return this._client.request('connect ' + args.HOST, 'mesh')
+            .then( result => {
+                console.log('connect result:', result);
+                this._lastResponse = result;
+                if(result.result){
+                    this._status.connected = true;
+                    this._status.ip = args.HOST
+                }else{
+                    this._status.connected = false;
+                    this._status.ip = null;
+                }
+                return result.message;
+            });
+        }
+    }
+
+    stopMesh(){
+        return this._client.request('terminate', 'mesh')
+        .then( result => {
+            console.log('terminate result:', result);
+            this._lastResponse = result;
+            if(result.result){
+                this._status.serverRunning = false;
+                this._status.connected = false;
+                this._status.ip = null;
+            }
+            return result;
         });
-        translatePromise.then(translatedText => translatedText);
-        return translatePromise;
+    }
+
+    showIPAddress(){
+        return this._status.ip;
+    }
+
+    getSensorUpdate(args){
+        const result = this._client.getMeshSensorValue(args.TARGET);
+        console.log('getSensorUpdate result:', result);
+        this._lastResponse = result;
+        return result.value;
     }
 }
 
-module.exports = Scratch3jthttp;
+module.exports = Scratch3jtmesh;

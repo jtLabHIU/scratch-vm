@@ -2,7 +2,7 @@
  * @file IO Device to jtS3Helper for Scratch3
  *      helper.js
  * @module scratch-vm/src/io/helper
- * @version 1.01.200124a
+ * @version 1.02.200306a
  * @author TANAHASHI, Jiro <jt@do-johodai.ac.jp>
  * @license MIT (see 'LICENSE' file)
  * @copyright (C) 2019-2020 jtLab, Hokkaido Information University
@@ -28,6 +28,8 @@ class Helper extends JSONRPC{
 
         this._watchdogTerminater = false;
         this._responseBuffer = [];
+
+        this._meshSensors = {};
 
         this.open(LOCATION);
     }
@@ -120,32 +122,41 @@ class Helper extends JSONRPC{
     }
 
     _onMessage(sock){
-        log.log('an message is received from the WebSocket for helper:', this._comm.sock.url);
+        //log.log('an message is received from the WebSocket for helper:', this._comm.sock.url);
         const response = JSON.parse(sock.data);
-        log.log(response);
-        if(response.commID === -1 && response.message === 'broadcast'){
-            log.log('broadcast invoked: ', response.key);
-            const broadcastVar = dispatch.services.runtime.getTargetForStage().lookupBroadcastMsg(
-                null, response.key);
-            if (broadcastVar) {
-                log.log('broadcast lookup successed');
-                const broadcastOption = response.key;
-                dispatch.services.runtime.startHats('event_whenbroadcastreceived', {
-                    BROADCAST_OPTION: broadcastOption
-                });
-            }else{
-                log.log('broadcast not found');
+        //log.log(response);
+        if(response.commID === -1){
+            if(response.message === 'broadcast'){
+                log.log('broadcast invoked: ', response.key);
+                const broadcastVar = dispatch.services.runtime.getTargetForStage().lookupBroadcastMsg(
+                    null, response.key);
+                if (broadcastVar) {
+                    log.log('broadcast lookup successed');
+                    const broadcastOption = response.key;
+                    dispatch.services.runtime.startHats('event_whenbroadcastreceived', {
+                        BROADCAST_OPTION: broadcastOption
+                    });
+                }else{
+                    log.log('broadcast not found');
+                }
+            }else if(response.message === 'sensor-update'){
+                this._meshSensors[response.key] = response.value;
+                log.log(this._meshSensors);
             }
         }else if(response.commID === 0){
-            log.log('notify:', response);
+            log.log('notify (not implemented yet):', response);
         }else{
-            log.log('mesh: ', response.message);
+            //log.log('mesh: ', response.message);
             this._responseBuffer.push(response);
         }
     }
 
     get responseBuffer(){
         return this._responseBuffer;
+    }
+
+    get meshSensors(){
+        return this._meshSensors;
     }
 
     getResponse(commID){
@@ -163,6 +174,16 @@ class Helper extends JSONRPC{
                     idx++;
                 }
             }
+        }
+        return result;
+    }
+
+    getMeshSensorValue(name = null){
+        const result = {result: false, message: 'sensor not found', value: null};
+        if(name && this._meshSensors.hasOwnProperty(name)){
+            result.result = true;
+            result.value = this._meshSensors[name];
+            result.message = 'sensor-update ' + name + ' ' + result.value;
         }
         return result;
     }
@@ -193,12 +214,12 @@ class Helper extends JSONRPC{
             const waitPromise = new Promise( resolve => {
                 const innerPromise = new Promise( resolve => {
                     if(this._comm.sock.readyState != WebSocket.OPEN){
-                        log.log('request: oops readyState is not WebSocket.OPEN');
+                        //log.log('request: oops readyState is not WebSocket.OPEN');
                         Promise.resolve(this.close())
                         .then( (result) => {
                             Promise.resolve(this.open(LOCATION))
                             .then( (result) => {
-                                log.log('reconnect maneuver: init()', result);
+                                //log.log('reconnect maneuver: init()', result);
                                 resolve(true);
                             });
                         });
@@ -206,7 +227,7 @@ class Helper extends JSONRPC{
                         resolve(false);
                     }
                 }).then( (result) => {
-                    log.log('reconnect maneuver: result', result);
+                    //log.log('reconnect maneuver: result', result);
                     log.log('helper request:', req);
                     this._comm.sock.send(req);
                     watchdog = setInterval( () => {
@@ -255,7 +276,7 @@ class Helper extends JSONRPC{
      */
     onChangeVariable(variable){
         if(this.isOpen()){
-            log.log('hi from helper.onChangeValiable:', variable);
+            this.request('sensor-update "' + variable.name + '" "' + variable.value + '"', 'mesh');
         }else{
             log.log('helper: onChangeVariable: unable to connect:', this._comm.sock.url);
         }
@@ -266,12 +287,8 @@ class Helper extends JSONRPC{
      * @param {Variable} variable 
      */
     onBroadcast(variable){
-        log.log(dispatch.services.vm.runtime);
         if(this.isOpen()){
-            log.log('hi from helper.onBroadcast:', variable);
-            //if(variable.split(' ')[0] === 'connect'){
-                this.request(variable, 'mesh');
-            //}
+            this.request('broadcast "' + variable + '"', 'mesh');
         }else{
             log.log('helper: onBroadCast: unable to connect:', this._comm.sock.url);
         }
