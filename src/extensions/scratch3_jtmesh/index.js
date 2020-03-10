@@ -1,3 +1,13 @@
+/**
+ * @file a Scratch3 extention implement for Scratch Mesh network
+ *      scaratch3_jtmesh/index.js
+ * @module scratch-vm/src/extension/scartch3_jtmesh
+ * @version 1.00.200310a
+ * @author TANAHASHI, Jiro <jt@do-johodai.ac.jp>
+ * @license MIT (see 'LICENSE' file)
+ * @copyright (C) 2020 jtLab, Hokkaido Information University
+ */
+
 const ArgumentType = require('../../extension-support/argument-type');
 const BlockType = require('../../extension-support/block-type');
 const Cast = require('../../util/cast');
