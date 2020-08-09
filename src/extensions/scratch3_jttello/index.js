@@ -2,7 +2,7 @@
  * @file a Scratch3 extention implement for Tello
  *      scaratch3_jttello/index.js
  * @module scratch-vm/src/extension/scartch3_jttello
- * @version 1.00.200310a
+ * @version 1.01.200808a
  * @author TANAHASHI, Jiro <jt@do-johodai.ac.jp>
  * @license MIT (see 'LICENSE' file)
  * @copyright (C) 2019-2020 jtLab, Hokkaido Information University
@@ -317,7 +317,7 @@ class Scratch3jttello {
                         MID: {
                             type: ArgumentType.STRING,
                             menu: 'MISSION_PAD_ID',
-                            defaultValue: 'm1'
+                            defaultValue: 'm0'
                         },
                         SPEED: {
                             type: ArgumentType.NUMBER,
@@ -357,7 +357,7 @@ class Scratch3jttello {
                         MID: {
                             type: ArgumentType.STRING,
                             menu: 'MISSION_PAD_ID',
-                            defaultValue: 'm1'
+                            defaultValue: 'm0'
                         },
                         SPEED: {
                             type: ArgumentType.NUMBER,
@@ -385,12 +385,12 @@ class Scratch3jttello {
                         MID1: {
                             type: ArgumentType.STRING,
                             menu: 'MISSION_PAD_ID',
-                            defaultValue: 'm1'
+                            defaultValue: 'm0'
                         },
                         MID2: {
                             type: ArgumentType.STRING,
                             menu: 'MISSION_PAD_ID',
-                            defaultValue: 'm1'
+                            defaultValue: 'm0'
                         },
                         SPEED: {
                             type: ArgumentType.NUMBER,
@@ -638,6 +638,7 @@ class Scratch3jttello {
                 MISSION_PAD_ID: {
                     acceptReporters: true,
                     items: [
+                        { text: 'm0', value: 'm0' },
                         { text: 'm1', value: 'm1' },
                         { text: 'm2', value: 'm2' },
                         { text: 'm3', value: 'm3' },
