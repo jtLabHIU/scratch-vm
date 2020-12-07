@@ -13,6 +13,7 @@ const builtinExtensions = {
     // but serves as a reference for loading core blocks as extensions.
     coreExample: () => require('../blocks/scratch3_core_example'),
     // These are the non-core built-in extensions.
+    jtv2microbit: () => require('../extensions/scratch3_jtv2microbit'),
     jtmesh: () => require('../extensions/scratch3_jtmesh'),
     jthttp: () => require('../extensions/scratch3_jthttp'),
     jttello: () => require('../extensions/scratch3_jttello'),
